@@ -3,6 +3,8 @@
 ## Objective
 This repository is created to demonstrate how a real Healthcare business application is developed from scratch and evolves as a web application. It is designed for 3rd year and 4th year engineering students at my engineering college, with me presenting, as an Alumni, to current engineering students with 2 hours of hands-on session.
 
+NOTE: To make students understand this flow used simple English instead of professional phrases (innovation, leverage, platform, e-commerce) are not mentioned.
+
 ## Workshop Agenda (2 Hours)
 
 | Time | Duration | Activity |
