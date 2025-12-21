@@ -60,7 +60,7 @@ A full-stack web application that enables customers to search, compare, and purc
 
 *"Team,*
 
-*As we enter 2026, our healthcare insurance market is rapidly evolving. Customers expect seamless digital experiences, and our competitors are already offering online plan purchases. To maintain our market leadership and drive growth, I am announcing our top strategic priorities:*
+*As we enter 2026, our healthcare insurance market is rapidly growing. Customers expect better website, and our competitors are already providing better healthcare plan purchasing experiences. To maintain our market leadership and  grow our business, I am announcing our top business priorities:*
 
 **Strategic Objectives:**
 
