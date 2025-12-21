@@ -3,9 +3,28 @@
 ## Objective
 This repository is created to demonstrate how a real Healthcare business application is developed from scratch and evolves as a web application. It is designed for 3rd year and 4th year engineering students at my engineering college, with me presenting, as an Alumni, to current engineering students with 2 hours of hands-on session.
 
-## "Your Health Plans" - Healthcare Insurance E-Commerce Platform
+## Workshop Agenda (2 Hours)
 
-A full-stack web application that enables customers to browse, compare, and purchase healthcare insurance plans online with a seamless shopping cart experience.
+| Time | Duration | Activity |
+|------|----------|----------|
+| 0:00 | 5 min | Welcome & Introduction |
+| 0:05 | 5 min | CEO's Strategic Vision - Business Context |
+| 0:10 | 5 min | Product Definition - "Your Health Plans" |
+| 0:15 | 10 min | Business Requirements Analysis |
+| 0:25 | 10 min | Noun-Verb Exercise - Identify Entities & Actions |
+| 0:35 | 5 min | Solution Architecture & Tech Stack Overview |
+| 0:40 | 15 min | Django Project Setup & Apps Creation |
+| 0:55 | 15 min | Models Implementation (DAO Layer) |
+| 1:10 | 10 min | Service Layer Implementation |
+| 1:20 | 15 min | API Layer (Django REST Framework) |
+| 1:35 | 10 min | Angular Setup & API Integration Demo |
+| 1:45 | 5 min | WireMock Payment Gateway Demo |
+| 1:50 | 5 min | GCP Deployment Overview (Cloud Run, Workflows) |
+| 1:55 | 5 min | Q&A and Wrap-up |
+
+## "Your Health Plans" - Healthcare Insurance Plans Purchasing Website
+
+A full-stack web application that enables customers to search, compare, and purchase healthcare insurance plans online with a seamless shopping cart experience.
 
 **Tech Stack:** Python + Django REST Framework | Angular 17 + Bootstrap 5 | PostgreSQL/MySQL | Google Cloud Platform
 
