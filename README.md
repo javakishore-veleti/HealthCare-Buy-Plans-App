@@ -60,17 +60,17 @@ A full-stack web application that enables customers to search, compare, and purc
 
 *"Team,*
 
-*As we enter 2026, our healthcare insurance market is rapidly growing. Customers expect better website, and our competitors are already providing better healthcare plan purchasing experiences. To maintain our market leadership and  grow our business, I am announcing our top business priorities:*
+*As we enter 2026, our healthcare insurance market is rapidly growing. Customers expect better website, and our competitors are already providing better healthcare plan purchasing experiences. To maintain our market leadership and  grow our business, I am announcing our top and immediate business priorities:*
 
 **Strategic Objectives:**
 
-1. **Growth** - Expand our customer base by 40% through digital channels (web, mobile, partners, airport kiosks, and other marketplaces)
+1. **Growth** - Expand our customers by 40% through digital channels (web, mobile, partners, airport kiosks, and other marketplaces)
 
-2. **Customer Experience** - Enable 24/7 self-service for healthcare plan discovery and purchase
+2. **Customer Experience** - Provide 24/7 self-service for healthcare plan discovery and purchase
 
-3. **Operational Efficiency** - Reduce manual processing by automating customer signup and plan enrollment
+3. **Operational Efficiency** - Reduce manual processing by automating customer signup and plan purchasing processes
 
-4. **Innovation** - Use AI/ML for personalized plan recommendations
+4. **Innovation** - Use AI/ML for customers personalized plan recommendations
 
 **Investment:** *I have secured board approval for a ₹100 Crores (approx. $10 million) budget for this digital initiative.*
 
