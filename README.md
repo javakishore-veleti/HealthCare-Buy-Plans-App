@@ -92,14 +92,14 @@ A full-stack web application that enables customers to search, compare, and purc
 **Product Name:** **"Your Health Plans"**
 
 **Product Vision:**  
-A customer-facing website that allows individuals and families to search, compare, and purchase healthcare insurance plans online with a seamless shopping cart experience.
+A customer-facing website that allows individuals and families to search, compare, and purchase healthcare insurance plans online with a shopping cart experience.
 
 **Target Users:**
 
 | User Type | Description |
 |-----------|-------------|
 | **Customer** | Individuals/families looking to buy health insurance plans |
-| **Admin** | HealthFirst staff managing plans, orders, and customer queries |
+| **Admin** |  "Your Health Plans" staff managing plans, orders, and customer queries |
 | **System** | Automated workflows for payment processing and notifications |
 
 **Core Capabilities Identified:**
