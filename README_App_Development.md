@@ -54,3 +54,6 @@ Run these commands from the repository root folder.
 | `npm run dev:ui` | Start Angular app |
 | `npm run dev:api` | Start Django server |
 
+### Django Admin UI Credentials
+- admin@admin.com
+- admin
