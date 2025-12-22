@@ -1,4 +1,4 @@
-name: Deploy Angular Frontend
+name: GCP Deploy Angular Frontend
 
 on:
   workflow_dispatch:
