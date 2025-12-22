@@ -9,7 +9,8 @@ mkdir -p front_end_code
 cd front_end_code
 
 # 4. Create Angular app (healthcare_plans_ui)
-ng new healthcare_plans_ui --routing --style=scss --strict
+# ng new healthcare_plans_ui --routing --style=scss --strict
+ng new healthcare_plans_ui --routing --style=scss --ssr=false
 
 # 5. Navigate into the Angular app
 cd healthcare_plans_ui

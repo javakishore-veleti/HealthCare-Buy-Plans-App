@@ -1,0 +1,13 @@
+// Profile component specific styles
+.card {
+  border: 1px solid #dee2e6;
+  
+  .card-header {
+    font-size: 0.9rem;
+  }
+}
+
+input[readonly], select[disabled] {
+  background-color: #f8f9fa;
+  cursor: default;
+}
