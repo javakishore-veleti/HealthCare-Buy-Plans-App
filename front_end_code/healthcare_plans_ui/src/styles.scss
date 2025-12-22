@@ -1,1 +1,44 @@
-/* You can add global styles to this file, and also import other style files */
+/* =============================================================================
+   Your Health Plans - Global Styles
+   ============================================================================= */
+
+/* Custom CSS Variables */
+:root {
+  --yhp-primary: #0d6efd;
+  --yhp-secondary: #6c757d;
+  --yhp-success: #198754;
+  --yhp-danger: #dc3545;
+  --yhp-warning: #ffc107;
+  --yhp-info: #0dcaf0;
+}
+
+/* Global Styles */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f8f9fa;
+}
+
+/* Utility Classes */
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.text-yhp-primary {
+  color: var(--yhp-primary);
+}
+
+/* Form Styles */
+.form-container {
+  max-width: 500px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Card Styles */
+.card-hover:hover {
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+  transition: box-shadow 0.3s ease;
+}
