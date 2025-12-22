@@ -1,0 +1,164 @@
+name: Deploy Django Backend
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Select deployment environment'
+        required: true
+        type: choice
+        options:
+          - dev-server
+          - qa-server
+          - pre-prod-server
+          - prod-server
+      run_migrations:
+        description: 'Run database migrations?'
+        required: true
+        type: boolean
+        default: true
+
+env:
+  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  REGION: asia-south1
+  SERVICE_NAME: healthcare-plans-api
+
+jobs:
+  build-and-deploy:
+    name: Deploy to ${{ github.event.inputs.environment }}
+    runs-on: ubuntu-latest
+    
+    environment:
+      name: ${{ github.event.inputs.environment }}
+      url: ${{ steps.deploy.outputs.url }}
+
+    steps:
+      # -----------------------------------------
+      # Step 1: Checkout code
+      # -----------------------------------------
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # -----------------------------------------
+      # Step 2: Set environment-specific variables
+      # -----------------------------------------
+      - name: Set environment variables
+        id: env-config
+        run: |
+          case "${{ github.event.inputs.environment }}" in
+            dev-server)
+              echo "INSTANCE_SUFFIX=dev" >> $GITHUB_OUTPUT
+              echo "MIN_INSTANCES=0" >> $GITHUB_OUTPUT
+              echo "MAX_INSTANCES=2" >> $GITHUB_OUTPUT
+              echo "MEMORY=512Mi" >> $GITHUB_OUTPUT
+              echo "CPU=1" >> $GITHUB_OUTPUT
+              ;;
+            qa-server)
+              echo "INSTANCE_SUFFIX=qa" >> $GITHUB_OUTPUT
+              echo "MIN_INSTANCES=0" >> $GITHUB_OUTPUT
+              echo "MAX_INSTANCES=3" >> $GITHUB_OUTPUT
+              echo "MEMORY=512Mi" >> $GITHUB_OUTPUT
+              echo "CPU=1" >> $GITHUB_OUTPUT
+              ;;
+            pre-prod-server)
+              echo "INSTANCE_SUFFIX=preprod" >> $GITHUB_OUTPUT
+              echo "MIN_INSTANCES=1" >> $GITHUB_OUTPUT
+              echo "MAX_INSTANCES=5" >> $GITHUB_OUTPUT
+              echo "MEMORY=1Gi" >> $GITHUB_OUTPUT
+              echo "CPU=2" >> $GITHUB_OUTPUT
+              ;;
+            prod-server)
+              echo "INSTANCE_SUFFIX=prod" >> $GITHUB_OUTPUT
+              echo "MIN_INSTANCES=2" >> $GITHUB_OUTPUT
+              echo "MAX_INSTANCES=10" >> $GITHUB_OUTPUT
+              echo "MEMORY=2Gi" >> $GITHUB_OUTPUT
+              echo "CPU=2" >> $GITHUB_OUTPUT
+              ;;
+          esac
+
+      # -----------------------------------------
+      # Step 3: Authenticate to Google Cloud
+      # -----------------------------------------
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      # -----------------------------------------
+      # Step 4: Set up Cloud SDK
+      # -----------------------------------------
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ env.PROJECT_ID }}
+
+      # -----------------------------------------
+      # Step 5: Configure Docker for GCP
+      # -----------------------------------------
+      - name: Configure Docker for Artifact Registry
+        run: |
+          gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
+
+      # -----------------------------------------
+      # Step 6: Build Docker image
+      # -----------------------------------------
+      - name: Build Docker image
+        working-directory: back_office
+        run: |
+          docker build -t ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/healthcare-plans/${{ env.SERVICE_NAME }}-${{ steps.env-config.outputs.INSTANCE_SUFFIX }}:${{ github.sha }} .
+          docker tag ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/healthcare-plans/${{ env.SERVICE_NAME }}-${{ steps.env-config.outputs.INSTANCE_SUFFIX }}:${{ github.sha }} ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/healthcare-plans/${{ env.SERVICE_NAME }}-${{ steps.env-config.outputs.INSTANCE_SUFFIX }}:latest
+
+      # -----------------------------------------
+      # Step 7: Push Docker image
+      # -----------------------------------------
+      - name: Push Docker image
+        run: |
+          docker push ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/healthcare-plans/${{ env.SERVICE_NAME }}-${{ steps.env-config.outputs.INSTANCE_SUFFIX }}:${{ github.sha }}
+          docker push ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/healthcare-plans/${{ env.SERVICE_NAME }}-${{ steps.env-config.outputs.INSTANCE_SUFFIX }}:latest
+
+      # -----------------------------------------
+      # Step 8: Run database migrations (if selected)
+      # -----------------------------------------
+      - name: Run database migrations
+        if: ${{ github.event.inputs.run_migrations == 'true' }}
+        run: |
+          echo "Running migrations for ${{ github.event.inputs.environment }}..."
+          gcloud run jobs execute migrate-db-${{ steps.env-config.outputs.INSTANCE_SUFFIX }} \
+            --region ${{ env.REGION }} \
+            --wait
+
+      # -----------------------------------------
+      # Step 9: Deploy to Cloud Run
+      # -----------------------------------------
+      - name: Deploy to Cloud Run
+        id: deploy
+        run: |
+          gcloud run deploy ${{ env.SERVICE_NAME }}-${{ steps.env-config.outputs.INSTANCE_SUFFIX }} \
+            --image ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/healthcare-plans/${{ env.SERVICE_NAME }}-${{ steps.env-config.outputs.INSTANCE_SUFFIX }}:${{ github.sha }} \
+            --region ${{ env.REGION }} \
+            --platform managed \
+            --memory ${{ steps.env-config.outputs.MEMORY }} \
+            --cpu ${{ steps.env-config.outputs.CPU }} \
+            --min-instances ${{ steps.env-config.outputs.MIN_INSTANCES }} \
+            --max-instances ${{ steps.env-config.outputs.MAX_INSTANCES }} \
+            --allow-unauthenticated \
+            --set-env-vars "ENVIRONMENT=${{ github.event.inputs.environment }}" \
+            --format 'value(status.url)'
+          
+          echo "url=$(gcloud run services describe ${{ env.SERVICE_NAME }}-${{ steps.env-config.outputs.INSTANCE_SUFFIX }} --region ${{ env.REGION }} --format 'value(status.url)')" >> $GITHUB_OUTPUT
+
+      # -----------------------------------------
+      # Step 10: Deployment summary
+      # -----------------------------------------
+      - name: Deployment Summary
+        run: |
+          echo "=========================================="
+          echo "✅ Deployment Complete!"
+          echo "=========================================="
+          echo ""
+          echo "Environment: ${{ github.event.inputs.environment }}"
+          echo "Service: ${{ env.SERVICE_NAME }}-${{ steps.env-config.outputs.INSTANCE_SUFFIX }}"
+          echo "URL: ${{ steps.deploy.outputs.url }}"
+          echo "Image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/healthcare-plans/${{ env.SERVICE_NAME }}-${{ steps.env-config.outputs.INSTANCE_SUFFIX }}:${{ github.sha }}"
+          echo "Migrations: ${{ github.event.inputs.run_migrations }}"
+          echo ""
