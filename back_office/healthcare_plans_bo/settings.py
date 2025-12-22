@@ -55,7 +55,7 @@ ROOT_URLCONF = 'healthcare_plans_bo.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'healthcare_plans_bo' / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [

@@ -1,0 +1,394 @@
+#!/bin/bash
+
+# =============================================================================
+# fix_02_welcome_page.sh
+# Purpose: Add an HTML welcome page showing all API endpoints
+# Run from git repo root folder
+# =============================================================================
+
+echo "=========================================="
+echo "Fix 02: Adding HTML Welcome Page"
+echo "=========================================="
+
+cd back_office
+
+# -----------------------------------------
+# Step 1: Create templates folder
+# -----------------------------------------
+echo ""
+echo "[Step 1] Creating templates folder..."
+
+mkdir -p healthcare_plans_bo/templates
+
+echo "    ✓ templates folder created"
+
+# -----------------------------------------
+# Step 2: Create welcome.html template
+# -----------------------------------------
+echo ""
+echo "[Step 2] Creating welcome.html template..."
+
+cat > healthcare_plans_bo/templates/welcome.html << 'EOF'
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Health Plans API</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .hero {
+            background: linear-gradient(135deg, #0d6efd 0%, #0143a3 100%);
+            color: white;
+            padding: 3rem 0;
+        }
+        .card {
+            border: none;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 1rem;
+        }
+        .card-header {
+            font-weight: 600;
+        }
+        .method-badge {
+            font-size: 0.75rem;
+            font-weight: 600;
+            min-width: 60px;
+            display: inline-block;
+            text-align: center;
+        }
+        .endpoint-path {
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+        .auth-required {
+            font-size: 0.75rem;
+        }
+        .table td {
+            vertical-align: middle;
+        }
+        .try-btn {
+            font-size: 0.75rem;
+        }
+        footer {
+            background-color: #343a40;
+            color: #adb5bd;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Hero Section -->
+    <div class="hero">
+        <div class="container">
+            <h1 class="display-5 fw-bold">🏥 Your Health Plans API</h1>
+            <p class="lead mb-0">Healthcare Insurance E-Commerce Platform</p>
+            <p class="mb-0"><small>Version 1.0.0</small></p>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container py-4">
+        
+        <!-- Quick Links -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card text-center h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">🔐 Admin Panel</h5>
+                        <a href="/admin/" class="btn btn-primary">Open Admin</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">📱 Angular App</h5>
+                        <a href="http://localhost:4200" class="btn btn-success" target="_blank">Open UI</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">✅ Health Check</h5>
+                        <span class="badge bg-success fs-6">Healthy</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">🗄️ Database</h5>
+                        <span class="badge bg-success fs-6">Connected</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Authentication Info -->
+        <div class="card mb-4">
+            <div class="card-header bg-dark text-white">
+                🔑 Authentication
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p class="mb-1"><strong>Type:</strong> JWT Bearer Token</p>
+                        <p class="mb-1"><strong>Header:</strong> <code>Authorization: Bearer &lt;access_token&gt;</code></p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="mb-1"><strong>Access Token Lifetime:</strong> 60 minutes</p>
+                        <p class="mb-1"><strong>Refresh Token Lifetime:</strong> 7 days</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Accounts API -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                👤 Accounts API <span class="badge bg-light text-dark ms-2">/api/v1/accounts/</span>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th width="80">Method</th>
+                            <th>Endpoint</th>
+                            <th>Description</th>
+                            <th width="80">Auth</th>
+                            <th width="80">Test</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="badge bg-success method-badge">POST</span></td>
+                            <td class="endpoint-path">/api/v1/accounts/register/</td>
+                            <td>Register a new user</td>
+                            <td><span class="badge bg-secondary auth-required">No</span></td>
+                            <td><a href="/api/v1/accounts/register/" class="btn btn-outline-primary btn-sm try-btn">Open</a></td>
+                        </tr>
+                        <tr>
+                            <td><span class="badge bg-success method-badge">POST</span></td>
+                            <td class="endpoint-path">/api/v1/accounts/login/</td>
+                            <td>Login and get JWT token</td>
+                            <td><span class="badge bg-secondary auth-required">No</span></td>
+                            <td><a href="/api/v1/accounts/login/" class="btn btn-outline-primary btn-sm try-btn">Open</a></td>
+                        </tr>
+                        <tr>
+                            <td><span class="badge bg-success method-badge">POST</span></td>
+                            <td class="endpoint-path">/api/v1/accounts/logout/</td>
+                            <td>Logout and invalidate token</td>
+                            <td><span class="badge bg-warning text-dark auth-required">Yes</span></td>
+                            <td><a href="/api/v1/accounts/logout/" class="btn btn-outline-primary btn-sm try-btn">Open</a></td>
+                        </tr>
+                        <tr>
+                            <td><span class="badge bg-info method-badge">GET</span></td>
+                            <td class="endpoint-path">/api/v1/accounts/profile/</td>
+                            <td>Get current user profile</td>
+                            <td><span class="badge bg-warning text-dark auth-required">Yes</span></td>
+                            <td><a href="/api/v1/accounts/profile/" class="btn btn-outline-primary btn-sm try-btn">Open</a></td>
+                        </tr>
+                        <tr>
+                            <td><span class="badge bg-warning text-dark method-badge">PATCH</span></td>
+                            <td class="endpoint-path">/api/v1/accounts/profile/</td>
+                            <td>Update user profile</td>
+                            <td><span class="badge bg-warning text-dark auth-required">Yes</span></td>
+                            <td><a href="/api/v1/accounts/profile/" class="btn btn-outline-primary btn-sm try-btn">Open</a></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Request/Response Examples -->
+        <div class="card mb-4">
+            <div class="card-header bg-secondary text-white">
+                📝 Request Examples
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Register Request</h6>
+                        <pre class="bg-dark text-light p-3 rounded"><code>{
+  "email": "user@example.com",
+  "mobile": "9876543210",
+  "password": "password123",
+  "full_name": "John Doe"
+}</code></pre>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Login Request</h6>
+                        <pre class="bg-dark text-light p-3 rounded"><code>{
+  "email": "user@example.com",
+  "password": "password123"
+}</code></pre>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <h6>Login Response</h6>
+                        <pre class="bg-dark text-light p-3 rounded"><code>{
+  "access_token": "eyJ0eXAiOiJKV1Q...",
+  "refresh_token": "eyJ0eXAiOiJKV1Q...",
+  "expires_in": 3600
+}</code></pre>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Profile Update Request</h6>
+                        <pre class="bg-dark text-light p-3 rounded"><code>{
+  "full_name": "John Doe",
+  "date_of_birth": "1990-01-15",
+  "gender": "Male",
+  "city": "Vijayawada",
+  "state": "Andhra Pradesh",
+  "pincode": "520001"
+}</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- cURL Examples -->
+        <div class="card mb-4">
+            <div class="card-header bg-dark text-white">
+                💻 cURL Examples
+            </div>
+            <div class="card-body">
+                <h6>Register</h6>
+                <pre class="bg-light p-3 rounded"><code>curl -X POST http://127.0.0.1:8000/api/v1/accounts/register/ \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@test.com","mobile":"9876543210","password":"password123","full_name":"Test User"}'</code></pre>
+                
+                <h6 class="mt-3">Login</h6>
+                <pre class="bg-light p-3 rounded"><code>curl -X POST http://127.0.0.1:8000/api/v1/accounts/login/ \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@test.com","password":"password123"}'</code></pre>
+                
+                <h6 class="mt-3">Get Profile (with token)</h6>
+                <pre class="bg-light p-3 rounded"><code>curl -X GET http://127.0.0.1:8000/api/v1/accounts/profile/ \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"</code></pre>
+            </div>
+        </div>
+
+        <!-- Future APIs -->
+        <div class="card mb-4">
+            <div class="card-header bg-light">
+                🚧 Coming Soon
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <h6>📦 Catalog API</h6>
+                        <p class="text-muted small">/api/v1/catalog/</p>
+                    </div>
+                    <div class="col-md-3">
+                        <h6>🛒 Cart API</h6>
+                        <p class="text-muted small">/api/v1/cart/</p>
+                    </div>
+                    <div class="col-md-3">
+                        <h6>📋 Orders API</h6>
+                        <p class="text-muted small">/api/v1/orders/</p>
+                    </div>
+                    <div class="col-md-3">
+                        <h6>💳 Payments API</h6>
+                        <p class="text-muted small">/api/v1/payments/</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Footer -->
+    <footer class="py-3 mt-4">
+        <div class="container text-center">
+            <small>© 2026 YourHealthFirst Insurance Ltd. | Workshop Demo Application</small>
+        </div>
+    </footer>
+
+</body>
+</html>
+EOF
+
+echo "    ✓ welcome.html template created"
+
+# -----------------------------------------
+# Step 3: Create views.py
+# -----------------------------------------
+echo ""
+echo "[Step 3] Creating views.py..."
+
+cat > healthcare_plans_bo/views.py << 'EOF'
+"""
+Welcome page view.
+"""
+
+from django.shortcuts import render
+
+
+def welcome_view(request):
+    """Render the welcome page with API documentation."""
+    return render(request, 'welcome.html')
+EOF
+
+echo "    ✓ healthcare_plans_bo/views.py created"
+
+# -----------------------------------------
+# Step 4: Update main urls.py
+# -----------------------------------------
+echo ""
+echo "[Step 4] Updating main URLs..."
+
+cat > healthcare_plans_bo/urls.py << 'EOF'
+"""
+healthcare_plans_bo URL Configuration
+"""
+
+from django.contrib import admin
+from django.urls import path, include
+from .views import welcome_view
+
+urlpatterns = [
+    path('', welcome_view, name='welcome'),
+    path('admin/', admin.site.urls),
+    path('api/v1/accounts/', include('accounts.urls')),
+]
+EOF
+
+echo "    ✓ healthcare_plans_bo/urls.py updated"
+
+# -----------------------------------------
+# Step 5: Update settings.py to include templates
+# -----------------------------------------
+echo ""
+echo "[Step 5] Updating settings.py for templates..."
+
+# Check OS and use appropriate sed syntax
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    # macOS
+    sed -i '' "s|'DIRS': \[\],|'DIRS': [BASE_DIR / 'healthcare_plans_bo' / 'templates'],|g" healthcare_plans_bo/settings.py
+else
+    # Linux
+    sed -i "s|'DIRS': \[\],|'DIRS': [BASE_DIR / 'healthcare_plans_bo' / 'templates'],|g" healthcare_plans_bo/settings.py
+fi
+
+echo "    ✓ settings.py updated"
+
+# -----------------------------------------
+# Summary
+# -----------------------------------------
+echo ""
+echo "=========================================="
+echo "HTML Welcome Page Added!"
+echo "=========================================="
+echo ""
+echo "Restart Django server:"
+echo "  npm run api:start"
+echo ""
+echo "Then open: http://127.0.0.1:8000/"
+echo ""
