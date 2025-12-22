@@ -31,7 +31,12 @@
 		Windows -> Windows Installer (.msi)
 		Macbook -> macOS Installer (.pkg)
 
-## SignUps
+## SignUp with your "Personal" email ONLY!
 1. Signup in github.com using personal email address (dont use college email address)
+	- https://github.com/signup?
+	- use your Personal email and do not use the college email address
 2. Signup in Dockerhub website
+	- https://app.docker.com/signup?
+	- select "Personal" instead of "Work"
+	- use your Personal email and do not use the college email address
 3. Signup with Google Cloud Provider
