@@ -35,4 +35,6 @@ EXPOSE 8080
 
 # Run with gunicorn
 # Run migrations and start gunicorn
-CMD python manage.py migrate --noinput && exec gunicorn --bind :$PORT --workers 2 --threads 4 --timeout 60 healthcare_plans_bo.wsgi:application
+CMD python manage.py migrate --noinput && \
+    DJANGO_SUPERUSER_PASSWORD=admin python manage.py createsuperuser --noinput --email admin@admin.com --mobile 1234567890 || true && \
+    exec gunicorn --bind :$PORT --workers 2 --threads 4 --timeout 60 healthcare_plans_bo.wsgi:application
