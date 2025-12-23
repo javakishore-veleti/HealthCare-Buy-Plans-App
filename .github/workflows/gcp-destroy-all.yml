@@ -1,4 +1,4 @@
-name: GCP Setup - Destroy All Resources
+name: GCP Setup - Destroy All Resources (Run Only Once)
 
 on:
   workflow_dispatch:

@@ -1,4 +1,4 @@
-name: GCP Setup - Initial
+name: GCP Setup - Initial (Run Only Once)
 
 on:
   workflow_dispatch:
