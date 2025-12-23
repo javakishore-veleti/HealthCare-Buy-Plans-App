@@ -19,12 +19,17 @@ NOTE: To make students understand this flow used simple English instead of profe
 ### Technology Focused:
 - Python Django
 - Angular UI
-- Google Cloud Provider (GCP) deploy this application in GCP Cloud Run
+- Docker image creation for this applications (Django and Angular separately)
+- Google Cloud Provider (GCP) deploy this applications (Django and Angular) in GCP Cloud Run. We deploy Django and Angular do
+- Publishing the Docker images (Django image and Angular image) to GCP CLoud Image Repository
+- GCP Configuring Service Accounts for Github Actions to publish Docker images and deploy the applications in GCP Cloud Run
 - Github Actions, various workflows to 
     -- setup GCP Resources, 
     -- Deploy Django to Cloud Run instance, 
     -- Deploy Angular in another Cloud Run instance,
     -- Access above Cloud Run instances (Django app and Angular app) from your laptop browser
+- Github Settings Secrets for Configuring Google Cloud Login details
+
 - Future: Gen AI and Agentic AI
 
 ## Who Is This Repository For?
