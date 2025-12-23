@@ -29,6 +29,10 @@ NOTE: To make students understand this flow used simple English instead of profe
 
 ## Who Is This Repository For?
 
+Read this file if you wanted to do re-create this codebase from scratch on your own.
+
+[README_Hands_On_Setup.md](README_Hands_On_Setup.md)
+
 ### 🎓 For Students & Fresh Graduates
 
 If you are a **Computer Science/Engineering student** or **fresh graduate** aspiring to master professional software development, this repository will teach you:
