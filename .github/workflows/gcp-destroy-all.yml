@@ -1,4 +1,4 @@
-name: GCP Destroy All Resources
+name: GCP Setup - Destroy All Resources
 
 on:
   workflow_dispatch:

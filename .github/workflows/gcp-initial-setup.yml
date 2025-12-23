@@ -1,4 +1,4 @@
-name: GCP Initial Setup
+name: GCP Setup - Initial
 
 on:
   workflow_dispatch:
