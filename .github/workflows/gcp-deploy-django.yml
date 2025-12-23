@@ -121,11 +121,15 @@ jobs:
       # -----------------------------------------
       - name: Run database migrations
         if: ${{ github.event.inputs.run_migrations == 'true' }}
+        continue-on-error: true
         run: |
           echo "Running migrations for ${{ github.event.inputs.environment }}..."
-          gcloud run jobs execute migrate-db-${{ steps.env-config.outputs.INSTANCE_SUFFIX }} \
-            --region ${{ env.REGION }} \
-            --wait
+          echo "Note: Using SQLite locally. Cloud SQL migrations will be set up separately."
+          echo "Skipping Cloud Run migration job for now..."
+          # TODO: Set up Cloud Run Job for migrations when Cloud SQL is configured
+          # gcloud run jobs execute migrate-db-${{ steps.env-config.outputs.INSTANCE_SUFFIX }} \
+          #   --region ${{ env.REGION }} \
+          #   --wait
 
       # -----------------------------------------
       # Step 9: Deploy to Cloud Run
