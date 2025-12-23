@@ -16,3 +16,6 @@ python-dotenv==1.0.1
 
 # Utilities
 python-dateutil==2.9.0
+
+# In GCP, The CSS/static files are not loading properly. This is a common issue with Django admin on Cloud Run.
+whitenoise==6.6.0

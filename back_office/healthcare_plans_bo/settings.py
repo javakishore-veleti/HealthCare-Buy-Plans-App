@@ -127,6 +127,11 @@ USE_TZ = True
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
+# In GCP, The CSS/static files are not loading properly. This is a common issue with Django admin on Cloud Run.
+# WhiteNoise for serving static files in production
+MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
