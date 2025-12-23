@@ -8,7 +8,7 @@ NOTE: To make students understand this flow used simple English instead of profe
 ### Business Focused:
 - Healthcare Domain
 - As a company admin 
-    - Healthcare Plans Create, Read, Update, Delete (CRUD) through UI
+    - Healthcare Plans Create, Read, Update, Delete (CRUD) through Angular UI and Business Logic by Python Django (called Back Office application or Back Office server)
 - As a customer or patient or general user (outside of the company) 
     - Search Healthcare Plans, 
     - Add Healthcare Plans to Shopping Cart, 
