@@ -43,36 +43,65 @@ jobs:
           case "${{ github.event.inputs.environment }}" in
             dev-server)
               echo "INSTANCE_SUFFIX=dev" >> $GITHUB_OUTPUT
-              echo "API_URL=https://healthcare-plans-api-dev-xxxxx.run.app" >> $GITHUB_OUTPUT
               echo "MIN_INSTANCES=0" >> $GITHUB_OUTPUT
               echo "MAX_INSTANCES=2" >> $GITHUB_OUTPUT
-              echo "NG_CONFIG=development" >> $GITHUB_OUTPUT
               ;;
             qa-server)
               echo "INSTANCE_SUFFIX=qa" >> $GITHUB_OUTPUT
-              echo "API_URL=https://healthcare-plans-api-qa-xxxxx.run.app" >> $GITHUB_OUTPUT
               echo "MIN_INSTANCES=0" >> $GITHUB_OUTPUT
               echo "MAX_INSTANCES=3" >> $GITHUB_OUTPUT
-              echo "NG_CONFIG=qa" >> $GITHUB_OUTPUT
               ;;
             pre-prod-server)
               echo "INSTANCE_SUFFIX=preprod" >> $GITHUB_OUTPUT
-              echo "API_URL=https://healthcare-plans-api-preprod-xxxxx.run.app" >> $GITHUB_OUTPUT
               echo "MIN_INSTANCES=1" >> $GITHUB_OUTPUT
               echo "MAX_INSTANCES=5" >> $GITHUB_OUTPUT
-              echo "NG_CONFIG=preprod" >> $GITHUB_OUTPUT
               ;;
             prod-server)
               echo "INSTANCE_SUFFIX=prod" >> $GITHUB_OUTPUT
-              echo "API_URL=https://healthcare-plans-api-prod-xxxxx.run.app" >> $GITHUB_OUTPUT
               echo "MIN_INSTANCES=2" >> $GITHUB_OUTPUT
               echo "MAX_INSTANCES=10" >> $GITHUB_OUTPUT
-              echo "NG_CONFIG=production" >> $GITHUB_OUTPUT
               ;;
           esac
 
       # -----------------------------------------
-      # Step 3: Setup Node.js
+      # Step 3: Authenticate to Google Cloud
+      # -----------------------------------------
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      # -----------------------------------------
+      # Step 4: Set up Cloud SDK
+      # -----------------------------------------
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ env.PROJECT_ID }}
+
+      # -----------------------------------------
+      # Step 5: Get Django API URL from Cloud Run
+      # -----------------------------------------
+      - name: Get Django API URL
+        id: get-api-url
+        run: |
+          echo "Fetching Django API URL for environment: ${{ steps.env-config.outputs.INSTANCE_SUFFIX }}"
+          
+          API_URL=$(gcloud run services describe healthcare-plans-api-${{ steps.env-config.outputs.INSTANCE_SUFFIX }} \
+            --region ${{ env.REGION }} \
+            --format 'value(status.url)' 2>/dev/null || echo "")
+          
+          if [ -z "$API_URL" ]; then
+            echo "::error::Django API service 'healthcare-plans-api-${{ steps.env-config.outputs.INSTANCE_SUFFIX }}' not found!"
+            echo "::error::Please deploy Django backend first using 'GCP Deploy - API - Django Backend' workflow."
+            exit 1
+          fi
+          
+          echo "API_URL=$API_URL" >> $GITHUB_OUTPUT
+          echo "✅ Found Django API URL: $API_URL"
+
+      # -----------------------------------------
+      # Step 6: Setup Node.js
       # -----------------------------------------
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -82,60 +111,48 @@ jobs:
           cache-dependency-path: front_end_code/healthcare_plans_ui/package-lock.json
 
       # -----------------------------------------
-      # Step 4: Install dependencies
+      # Step 7: Install dependencies
       # -----------------------------------------
       - name: Install dependencies
         working-directory: front_end_code/healthcare_plans_ui
         run: npm ci
 
       # -----------------------------------------
-      # Step 5: Update environment file with API URL
+      # Step 8: Update environment file with API URL
       # -----------------------------------------
       - name: Update environment configuration
         working-directory: front_end_code/healthcare_plans_ui
         run: |
-          cat > src/environments/environment.${{ steps.env-config.outputs.NG_CONFIG }}.ts << EOF
+          echo "Updating environment.ts with API URL: ${{ steps.get-api-url.outputs.API_URL }}"
+          
+          cat > src/environments/environment.ts << EOF
           export const environment = {
             production: ${{ github.event.inputs.environment == 'prod-server' }},
-            apiBaseUrl: '${{ steps.env-config.outputs.API_URL }}/api/v1',
+            apiBaseUrl: '${{ steps.get-api-url.outputs.API_URL }}/api/v1',
             appName: 'Your Health Plans',
             environment: '${{ github.event.inputs.environment }}'
           };
           EOF
+          
+          echo "✅ Updated environment.ts:"
+          cat src/environments/environment.ts
 
       # -----------------------------------------
-      # Step 6: Build Angular app
+      # Step 9: Build Angular app
       # -----------------------------------------
       - name: Build Angular app
         working-directory: front_end_code/healthcare_plans_ui
-        run: |
-          npm run build -- --configuration=${{ steps.env-config.outputs.NG_CONFIG }}
+        run: npm run build
 
       # -----------------------------------------
-      # Step 7: Authenticate to Google Cloud
-      # -----------------------------------------
-      - name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v2
-        with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
-
-      # -----------------------------------------
-      # Step 8: Set up Cloud SDK
-      # -----------------------------------------
-      - name: Set up Cloud SDK
-        uses: google-github-actions/setup-gcloud@v2
-        with:
-          project_id: ${{ env.PROJECT_ID }}
-
-      # -----------------------------------------
-      # Step 9: Configure Docker for GCP
+      # Step 10: Configure Docker for GCP
       # -----------------------------------------
       - name: Configure Docker for Artifact Registry
         run: |
           gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
 
       # -----------------------------------------
-      # Step 10: Create Dockerfile for nginx
+      # Step 11: Create Dockerfile for nginx
       # -----------------------------------------
       - name: Create Dockerfile
         working-directory: front_end_code/healthcare_plans_ui
@@ -180,7 +197,7 @@ jobs:
           EOF
 
       # -----------------------------------------
-      # Step 11: Build Docker image
+      # Step 12: Build Docker image
       # -----------------------------------------
       - name: Build Docker image
         working-directory: front_end_code/healthcare_plans_ui
@@ -189,7 +206,7 @@ jobs:
           docker tag ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/healthcare-plans/${{ env.SERVICE_NAME }}-${{ steps.env-config.outputs.INSTANCE_SUFFIX }}:${{ github.sha }} ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/healthcare-plans/${{ env.SERVICE_NAME }}-${{ steps.env-config.outputs.INSTANCE_SUFFIX }}:latest
 
       # -----------------------------------------
-      # Step 12: Push Docker image
+      # Step 13: Push Docker image
       # -----------------------------------------
       - name: Push Docker image
         run: |
@@ -197,7 +214,7 @@ jobs:
           docker push ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/healthcare-plans/${{ env.SERVICE_NAME }}-${{ steps.env-config.outputs.INSTANCE_SUFFIX }}:latest
 
       # -----------------------------------------
-      # Step 13: Deploy to Cloud Run
+      # Step 14: Deploy to Cloud Run
       # -----------------------------------------
       - name: Deploy to Cloud Run
         id: deploy
@@ -217,17 +234,20 @@ jobs:
           echo "url=$(gcloud run services describe ${{ env.SERVICE_NAME }}-${{ steps.env-config.outputs.INSTANCE_SUFFIX }} --region ${{ env.REGION }} --format 'value(status.url)')" >> $GITHUB_OUTPUT
 
       # -----------------------------------------
-      # Step 14: Deployment summary
+      # Step 15: Deployment summary
       # -----------------------------------------
       - name: Deployment Summary
         run: |
           echo "=========================================="
-          echo "✅ Deployment Complete!"
+          echo "✅ Angular Frontend Deployment Complete!"
           echo "=========================================="
           echo ""
           echo "Environment: ${{ github.event.inputs.environment }}"
           echo "Service: ${{ env.SERVICE_NAME }}-${{ steps.env-config.outputs.INSTANCE_SUFFIX }}"
-          echo "URL: ${{ steps.deploy.outputs.url }}"
-          echo "API URL: ${{ steps.env-config.outputs.API_URL }}"
+          echo ""
+          echo "🌐 Frontend URL: ${{ steps.deploy.outputs.url }}"
+          echo "🔗 Backend API URL: ${{ steps.get-api-url.outputs.API_URL }}/api/v1"
+          echo ""
           echo "Image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/healthcare-plans/${{ env.SERVICE_NAME }}-${{ steps.env-config.outputs.INSTANCE_SUFFIX }}:${{ github.sha }}"
           echo ""
+          echo "=========================================="
