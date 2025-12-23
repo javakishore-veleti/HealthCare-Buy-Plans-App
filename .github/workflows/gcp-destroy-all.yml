@@ -1,0 +1,282 @@
+name: GCP Destroy All Resources
+
+on:
+  workflow_dispatch:
+    inputs:
+      destroy_type:
+        description: 'Select what to destroy'
+        required: true
+        type: choice
+        options:
+          - all (DESTROY EVERYTHING)
+          - cloud-run-only
+          - cloud-sql-only
+          - artifact-registry-only
+          - secrets-only
+      environment:
+        description: 'Select environment (or "all" for all environments)'
+        required: true
+        type: choice
+        options:
+          - all
+          - dev
+          - qa
+          - preprod
+          - prod
+      confirm_destroy:
+        description: 'Type "DESTROY" to confirm (safety check)'
+        required: true
+        type: string
+
+env:
+  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  REGION: asia-south1
+
+jobs:
+  destroy-resources:
+    name: Destroy - ${{ github.event.inputs.destroy_type }} (${{ github.event.inputs.environment }})
+    runs-on: ubuntu-latest
+
+    steps:
+      # -----------------------------------------
+      # Step 1: Safety Check
+      # -----------------------------------------
+      - name: Safety Check
+        run: |
+          if [ "${{ github.event.inputs.confirm_destroy }}" != "DESTROY" ]; then
+            echo "❌ Safety check failed!"
+            echo "You must type 'DESTROY' to confirm."
+            echo "This prevents accidental deletion of resources."
+            exit 1
+          fi
+          echo "✅ Safety check passed. Proceeding with destruction..."
+
+      # -----------------------------------------
+      # Step 2: Checkout code
+      # -----------------------------------------
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # -----------------------------------------
+      # Step 3: Authenticate to Google Cloud
+      # -----------------------------------------
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      # -----------------------------------------
+      # Step 4: Set up Cloud SDK
+      # -----------------------------------------
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ env.PROJECT_ID }}
+
+      # -----------------------------------------
+      # Step 5: Set environments to destroy
+      # -----------------------------------------
+      - name: Set environments
+        id: set-envs
+        run: |
+          if [ "${{ github.event.inputs.environment }}" == "all" ]; then
+            echo "environments=dev qa preprod prod" >> $GITHUB_OUTPUT
+          else
+            echo "environments=${{ github.event.inputs.environment }}" >> $GITHUB_OUTPUT
+          fi
+
+      # -----------------------------------------
+      # Step 6: Delete Cloud Run Services
+      # -----------------------------------------
+      - name: Delete Cloud Run Services
+        if: ${{ github.event.inputs.destroy_type == 'all (DESTROY EVERYTHING)' || github.event.inputs.destroy_type == 'cloud-run-only' }}
+        run: |
+          echo "=========================================="
+          echo "🗑️  Deleting Cloud Run Services..."
+          echo "=========================================="
+          
+          for env in ${{ steps.set-envs.outputs.environments }}; do
+            echo ""
+            echo "Environment: $env"
+            echo "-------------------"
+            
+            # Delete API service
+            service_name="healthcare-plans-api-${env}"
+            if gcloud run services describe $service_name --region=${{ env.REGION }} &>/dev/null; then
+              echo "Deleting $service_name..."
+              gcloud run services delete $service_name \
+                --region=${{ env.REGION }} \
+                --quiet
+              echo "✅ Deleted $service_name"
+            else
+              echo "⏭️  $service_name does not exist, skipping"
+            fi
+            
+            # Delete UI service
+            ui_service_name="healthcare-plans-ui-${env}"
+            if gcloud run services describe $ui_service_name --region=${{ env.REGION }} &>/dev/null; then
+              echo "Deleting $ui_service_name..."
+              gcloud run services delete $ui_service_name \
+                --region=${{ env.REGION }} \
+                --quiet
+              echo "✅ Deleted $ui_service_name"
+            else
+              echo "⏭️  $ui_service_name does not exist, skipping"
+            fi
+            
+            # Delete migration job if exists
+            job_name="migrate-db-${env}"
+            if gcloud run jobs describe $job_name --region=${{ env.REGION }} &>/dev/null; then
+              echo "Deleting job $job_name..."
+              gcloud run jobs delete $job_name \
+                --region=${{ env.REGION }} \
+                --quiet
+              echo "✅ Deleted job $job_name"
+            else
+              echo "⏭️  Job $job_name does not exist, skipping"
+            fi
+          done
+
+      # -----------------------------------------
+      # Step 7: Delete Cloud SQL Instances
+      # -----------------------------------------
+      - name: Delete Cloud SQL Instances
+        if: ${{ github.event.inputs.destroy_type == 'all (DESTROY EVERYTHING)' || github.event.inputs.destroy_type == 'cloud-sql-only' }}
+        run: |
+          echo "=========================================="
+          echo "🗑️  Deleting Cloud SQL Instances..."
+          echo "=========================================="
+          echo ""
+          echo "⚠️  WARNING: This will DELETE all data!"
+          echo ""
+          
+          for env in ${{ steps.set-envs.outputs.environments }}; do
+            instance_name="healthcare-plans-db-${env}"
+            
+            if gcloud sql instances describe $instance_name &>/dev/null; then
+              echo "Deleting $instance_name..."
+              gcloud sql instances delete $instance_name \
+                --quiet
+              echo "✅ Deleted $instance_name"
+            else
+              echo "⏭️  $instance_name does not exist, skipping"
+            fi
+          done
+
+      # -----------------------------------------
+      # Step 8: Delete Artifact Registry Images
+      # -----------------------------------------
+      - name: Delete Artifact Registry Images
+        if: ${{ github.event.inputs.destroy_type == 'all (DESTROY EVERYTHING)' || github.event.inputs.destroy_type == 'artifact-registry-only' }}
+        run: |
+          echo "=========================================="
+          echo "🗑️  Deleting Artifact Registry Images..."
+          echo "=========================================="
+          
+          REPO_NAME="healthcare-plans"
+          
+          # Check if repository exists
+          if gcloud artifacts repositories describe $REPO_NAME --location=${{ env.REGION }} &>/dev/null; then
+            
+            for env in ${{ steps.set-envs.outputs.environments }}; do
+              echo ""
+              echo "Environment: $env"
+              echo "-------------------"
+              
+              # Delete API images
+              api_image="healthcare-plans-api-${env}"
+              echo "Deleting images for $api_image..."
+              gcloud artifacts docker images delete \
+                ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/$REPO_NAME/$api_image \
+                --delete-tags \
+                --quiet 2>/dev/null || echo "  ⏭️  No images found for $api_image"
+              
+              # Delete UI images
+              ui_image="healthcare-plans-ui-${env}"
+              echo "Deleting images for $ui_image..."
+              gcloud artifacts docker images delete \
+                ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/$REPO_NAME/$ui_image \
+                --delete-tags \
+                --quiet 2>/dev/null || echo "  ⏭️  No images found for $ui_image"
+            done
+            
+            # If destroying all environments, delete the repository too
+            if [ "${{ github.event.inputs.environment }}" == "all" ]; then
+              echo ""
+              echo "Deleting repository $REPO_NAME..."
+              gcloud artifacts repositories delete $REPO_NAME \
+                --location=${{ env.REGION }} \
+                --quiet
+              echo "✅ Deleted repository $REPO_NAME"
+            fi
+          else
+            echo "⏭️  Repository $REPO_NAME does not exist, skipping"
+          fi
+
+      # -----------------------------------------
+      # Step 9: Delete Secret Manager Secrets
+      # -----------------------------------------
+      - name: Delete Secret Manager Secrets
+        if: ${{ github.event.inputs.destroy_type == 'all (DESTROY EVERYTHING)' || github.event.inputs.destroy_type == 'secrets-only' }}
+        run: |
+          echo "=========================================="
+          echo "🗑️  Deleting Secret Manager Secrets..."
+          echo "=========================================="
+          
+          secrets=("django-secret-key" "db-password")
+          
+          for env in ${{ steps.set-envs.outputs.environments }}; do
+            echo ""
+            echo "Environment: $env"
+            echo "-------------------"
+            
+            for secret in "${secrets[@]}"; do
+              secret_name="healthcare-plans-${env}-${secret}"
+              
+              if gcloud secrets describe $secret_name &>/dev/null; then
+                echo "Deleting $secret_name..."
+                gcloud secrets delete $secret_name --quiet
+                echo "✅ Deleted $secret_name"
+              else
+                echo "⏭️  $secret_name does not exist, skipping"
+              fi
+            done
+          done
+
+      # -----------------------------------------
+      # Step 10: Destruction Summary
+      # -----------------------------------------
+      - name: Destruction Summary
+        run: |
+          echo ""
+          echo "=========================================="
+          echo "🗑️  Destruction Complete!"
+          echo "=========================================="
+          echo ""
+          echo "Project ID: ${{ env.PROJECT_ID }}"
+          echo "Region: ${{ env.REGION }}"
+          echo "Destroy Type: ${{ github.event.inputs.destroy_type }}"
+          echo "Environment(s): ${{ github.event.inputs.environment }}"
+          echo ""
+          echo "----------------------------------------"
+          echo "Remaining Resources:"
+          echo "----------------------------------------"
+          echo ""
+          echo "☁️  Cloud Run Services:"
+          gcloud run services list --region=${{ env.REGION }} --format="table(name,status)" 2>/dev/null || echo "  (none)"
+          echo ""
+          echo "🗄️  Cloud SQL Instances:"
+          gcloud sql instances list --format="table(name,state)" 2>/dev/null || echo "  (none)"
+          echo ""
+          echo "📦 Artifact Registry:"
+          gcloud artifacts repositories list --location=${{ env.REGION }} --format="table(name)" 2>/dev/null || echo "  (none)"
+          echo ""
+          echo "🔐 Secrets:"
+          gcloud secrets list --format="table(name)" --filter="name~healthcare-plans" 2>/dev/null || echo "  (none)"
+          echo ""
+          echo "----------------------------------------"
+          echo "💰 Cost Impact:"
+          echo "----------------------------------------"
+          echo "Resources deleted will stop incurring charges."
+          echo "Check billing: https://console.cloud.google.com/billing"
+          echo ""
