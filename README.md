@@ -111,8 +111,11 @@ Week 4: DevOps & Deployment
 | [README_For_Students_Graduates.md](README_For_Students_Graduates.md) | Complete learning guide with detailed explanations for each concept |
 | [README_For_IT_Professionals.md](README_For_IT_Professionals.md) | Technology comparisons and migration guide from Java/Spring/.NET |
 | [README_Customer_SignUp.md](README_Customer_SignUp.md) | Focused design document for the Customer SignUp/Login feature |
+| [README_Github_Workflows.md](README_Github_Workflows.md) | Complete guide to all GitHub Actions CI/CD workflows |
+| [README_GoogleCloud_WhatYouShouldDo.md](README_GoogleCloud_WhatYouShouldDo.md) | Step-by-step GCP Console setup before deployment |
 
 ---
+
 ## "Your Health Plans" - Healthcare Insurance Plans Purchasing Website
 
 A full-stack web application that enables customers to search, compare, and purchase healthcare insurance plans online with a seamless shopping cart experience.
