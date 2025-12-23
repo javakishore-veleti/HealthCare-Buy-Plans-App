@@ -156,3 +156,14 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 CORS_ALLOW_CREDENTIALS = True
+
+# CSRF Trusted Origins (for Cloud Run, AWS, Azure, etc.)
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:4200',
+    'http://127.0.0.1:4200',
+    'http://localhost:8000',
+    'http://127.0.0.1:8000',
+    'https://*.run.app',
+    'https://*.a.run.app',
+    'https://*',
+]
