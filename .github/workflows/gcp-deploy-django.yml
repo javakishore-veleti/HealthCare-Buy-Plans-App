@@ -1,4 +1,4 @@
-name: GCP Deploy - Back Office - Django Backend
+name: GCP Deploy - Backend - Django Server
 
 on:
   workflow_dispatch:
