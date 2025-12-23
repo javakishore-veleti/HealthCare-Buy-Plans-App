@@ -43,6 +43,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',  # Must be at top
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -171,4 +172,35 @@ CSRF_TRUSTED_ORIGINS = [
     'https://*.run.app',
     'https://*.a.run.app',
     'https://*',
+]
+
+# CORS Settings
+CORS_ALLOW_ALL_ORIGINS = True  # For workshop/development
+
+# Or if you want to be specific:
+# CORS_ALLOWED_ORIGINS = [
+#     'http://localhost:4200',
+#     'http://127.0.0.1:4200',
+#     'https://healthcare-plans-ui-dev-rkltlgdlva-el.a.run.app',
+# ]
+
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
 ]
