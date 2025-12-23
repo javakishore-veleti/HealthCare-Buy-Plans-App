@@ -25,6 +25,8 @@ If you are a **Computer Science/Engineering student** or **fresh graduate** aspi
 | **CI/CD Pipelines** | GitHub Actions for automated build and deployment |
 | **Professional Practices** | Code organization, environment configuration, and documentation |
 
+📖 **[Read the Complete Learning Guide for Students & Graduates →](README_For_Students_Graduates.md)**
+
 ---
 
 ### 💼 For IT Professionals
@@ -40,6 +42,8 @@ If you are an **experienced IT professional** looking to upskill or switch techn
 | **Infrastructure as Code** | GitHub Actions workflows for multi-environment deployments |
 | **Mock Services** | WireMock for simulating payment gateways during development |
 | **AI Integration (Phase 2)** | Dialogflow CX and Cloud Workflows for conversational AI |
+
+📖 **[Read the Complete Learning Guide for IT Professionals →](README_For_IT_Professionals.md)**
 
 ---
 
@@ -57,6 +61,8 @@ If you are an **experienced IT professional** looking to upskill or switch techn
 | Cloud Deployment | AWS/Azure | Azure | GCP Cloud Run |
 | CI/CD | Jenkins/GitHub Actions | Azure DevOps | GitHub Actions |
 
+📖 **[See detailed code comparisons in the IT Professionals Guide →](README_For_IT_Professionals.md#3-django-for-springjava-developers)**
+
 ---
 
 ### 📚 Learning Path
@@ -73,6 +79,16 @@ Week 3: Frontend Development
 Week 4: DevOps & Deployment
         └── Docker → GitHub Actions → GCP Cloud Run
 ```
+
+---
+
+### 📄 Additional Documentation
+
+| Document | Description |
+|----------|-------------|
+| [README_For_Students_Graduates.md](README_For_Students_Graduates.md) | Complete learning guide with detailed explanations for each concept |
+| [README_For_IT_Professionals.md](README_For_IT_Professionals.md) | Technology comparisons and migration guide from Java/Spring/.NET |
+| [README_Customer_SignUp.md](README_Customer_SignUp.md) | Focused design document for the Customer SignUp/Login feature |
 
 ---
 
