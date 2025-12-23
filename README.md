@@ -8,13 +8,13 @@ NOTE: To make students understand this flow used simple English instead of profe
 ### Business Focused:
 - Healthcare Domain
 - As a company admin 
-    -- Healthcare Plans Create, Read, Update, Delete (CRUD) through UI
+    - Healthcare Plans Create, Read, Update, Delete (CRUD) through UI
 - As a customer or patient or general user (outside of the company) 
-    -- Search Healthcare Plans, 
-    -- Add Healthcare Plans to Shopping Cart, 
-    -- Pay for the Healthcare Plans (dummy payment not real),  
-    -- Create Healthcare Plans Order
-    -- Renew the Healthcare Plans (future implementation)
+    - Search Healthcare Plans, 
+    - Add Healthcare Plans to Shopping Cart, 
+    - Pay for the Healthcare Plans (dummy payment not real),  
+    - Create Healthcare Plans Order
+    - Renew the Healthcare Plans (future implementation)
 
 ### Technology Focused:
 - Python Django
