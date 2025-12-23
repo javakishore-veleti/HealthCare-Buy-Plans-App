@@ -1,0 +1,222 @@
+name: GCP Initial Setup
+
+on:
+  workflow_dispatch:
+    inputs:
+      setup_type:
+        description: 'Select setup to run'
+        required: true
+        type: choice
+        options:
+          - all (Complete Setup)
+          - enable-apis-only
+          - create-artifact-registry-only
+          - create-cloud-sql-only
+          - create-secrets-only
+
+env:
+  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  REGION: asia-south1
+
+jobs:
+  gcp-setup:
+    name: GCP Setup - ${{ github.event.inputs.setup_type }}
+    runs-on: ubuntu-latest
+
+    steps:
+      # -----------------------------------------
+      # Step 1: Checkout code
+      # -----------------------------------------
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # -----------------------------------------
+      # Step 2: Authenticate to Google Cloud
+      # -----------------------------------------
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      # -----------------------------------------
+      # Step 3: Set up Cloud SDK
+      # -----------------------------------------
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ env.PROJECT_ID }}
+
+      # -----------------------------------------
+      # Step 4: Enable Required APIs
+      # -----------------------------------------
+      - name: Enable Required APIs
+        if: ${{ github.event.inputs.setup_type == 'all (Complete Setup)' || github.event.inputs.setup_type == 'enable-apis-only' }}
+        run: |
+          echo "=========================================="
+          echo "Enabling Required GCP APIs..."
+          echo "=========================================="
+          
+          apis=(
+            "artifactregistry.googleapis.com"
+            "run.googleapis.com"
+            "sqladmin.googleapis.com"
+            "secretmanager.googleapis.com"
+            "cloudbuild.googleapis.com"
+            "compute.googleapis.com"
+            "servicenetworking.googleapis.com"
+          )
+          
+          for api in "${apis[@]}"; do
+            echo "Enabling $api..."
+            gcloud services enable $api --quiet || echo "  ⚠️  $api may already be enabled or failed"
+          done
+          
+          echo ""
+          echo "✅ APIs enabled successfully!"
+          echo ""
+          echo "Waiting 30 seconds for APIs to propagate..."
+          sleep 30
+
+      # -----------------------------------------
+      # Step 5: Create Artifact Registry Repository
+      # -----------------------------------------
+      - name: Create Artifact Registry Repository
+        if: ${{ github.event.inputs.setup_type == 'all (Complete Setup)' || github.event.inputs.setup_type == 'create-artifact-registry-only' }}
+        run: |
+          echo "=========================================="
+          echo "Creating Artifact Registry Repository..."
+          echo "=========================================="
+          
+          # Check if repository exists
+          if gcloud artifacts repositories describe healthcare-plans --location=${{ env.REGION }} &>/dev/null; then
+            echo "✅ Repository 'healthcare-plans' already exists"
+          else
+            echo "Creating repository 'healthcare-plans'..."
+            gcloud artifacts repositories create healthcare-plans \
+              --repository-format=docker \
+              --location=${{ env.REGION }} \
+              --description="Docker images for HealthCare Buy Plans App"
+            echo "✅ Repository created successfully!"
+          fi
+
+      # -----------------------------------------
+      # Step 6: Create Cloud SQL Instance (PostgreSQL)
+      # -----------------------------------------
+      - name: Create Cloud SQL Instance
+        if: ${{ github.event.inputs.setup_type == 'all (Complete Setup)' || github.event.inputs.setup_type == 'create-cloud-sql-only' }}
+        run: |
+          echo "=========================================="
+          echo "Creating Cloud SQL Instances..."
+          echo "=========================================="
+          
+          # Define instances for each environment
+          environments=("dev" "qa" "preprod" "prod")
+          
+          for env in "${environments[@]}"; do
+            instance_name="healthcare-plans-db-${env}"
+            
+            # Check if instance exists
+            if gcloud sql instances describe $instance_name &>/dev/null; then
+              echo "✅ Instance '$instance_name' already exists"
+            else
+              echo "Creating instance '$instance_name'..."
+              
+              # Set tier based on environment
+              if [ "$env" == "prod" ]; then
+                tier="db-custom-2-4096"
+              elif [ "$env" == "preprod" ]; then
+                tier="db-custom-1-3840"
+              else
+                tier="db-f1-micro"
+              fi
+              
+              gcloud sql instances create $instance_name \
+                --database-version=POSTGRES_15 \
+                --tier=$tier \
+                --region=${{ env.REGION }} \
+                --storage-type=SSD \
+                --storage-size=10GB \
+                --no-assign-ip \
+                --network=default \
+                --quiet || echo "  ⚠️  Failed to create $instance_name (may need VPC setup)"
+              
+              echo "✅ Instance '$instance_name' created!"
+            fi
+          done
+          
+          echo ""
+          echo "Note: Cloud SQL instances take 5-10 minutes to be fully ready."
+
+      # -----------------------------------------
+      # Step 7: Create Secret Manager Secrets
+      # -----------------------------------------
+      - name: Create Secret Manager Secrets
+        if: ${{ github.event.inputs.setup_type == 'all (Complete Setup)' || github.event.inputs.setup_type == 'create-secrets-only' }}
+        run: |
+          echo "=========================================="
+          echo "Creating Secret Manager Secrets..."
+          echo "=========================================="
+          
+          environments=("dev" "qa" "preprod" "prod")
+          secrets=("django-secret-key" "db-password")
+          
+          for env in "${environments[@]}"; do
+            for secret in "${secrets[@]}"; do
+              secret_name="healthcare-plans-${env}-${secret}"
+              
+              # Check if secret exists
+              if gcloud secrets describe $secret_name &>/dev/null; then
+                echo "✅ Secret '$secret_name' already exists"
+              else
+                echo "Creating secret '$secret_name'..."
+                
+                # Generate random value for new secrets
+                if [ "$secret" == "django-secret-key" ]; then
+                  secret_value=$(openssl rand -base64 50 | tr -dc 'a-zA-Z0-9' | head -c 50)
+                else
+                  secret_value=$(openssl rand -base64 20 | tr -dc 'a-zA-Z0-9' | head -c 20)
+                fi
+                
+                # Create secret
+                echo -n "$secret_value" | gcloud secrets create $secret_name \
+                  --data-file=- \
+                  --replication-policy="automatic"
+                
+                echo "✅ Secret '$secret_name' created!"
+              fi
+            done
+          done
+
+      # -----------------------------------------
+      # Step 8: Setup Summary
+      # -----------------------------------------
+      - name: Setup Summary
+        run: |
+          echo ""
+          echo "=========================================="
+          echo "✅ GCP Initial Setup Complete!"
+          echo "=========================================="
+          echo ""
+          echo "Project ID: ${{ env.PROJECT_ID }}"
+          echo "Region: ${{ env.REGION }}"
+          echo "Setup Type: ${{ github.event.inputs.setup_type }}"
+          echo ""
+          echo "----------------------------------------"
+          echo "Resources Created/Verified:"
+          echo "----------------------------------------"
+          echo ""
+          echo "📦 Artifact Registry:"
+          gcloud artifacts repositories list --location=${{ env.REGION }} --format="table(name,format)" 2>/dev/null || echo "  (none)"
+          echo ""
+          echo "🗄️  Cloud SQL Instances:"
+          gcloud sql instances list --format="table(name,databaseVersion,region,state)" 2>/dev/null || echo "  (none)"
+          echo ""
+          echo "🔐 Secrets:"
+          gcloud secrets list --format="table(name)" --filter="name~healthcare-plans" 2>/dev/null || echo "  (none)"
+          echo ""
+          echo "----------------------------------------"
+          echo "Next Steps:"
+          echo "----------------------------------------"
+          echo "1. Run 'Deploy Django Backend' workflow"
+          echo "2. Run 'Deploy Angular Frontend' workflow"
+          echo ""
