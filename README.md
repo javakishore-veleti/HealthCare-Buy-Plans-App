@@ -5,6 +5,16 @@ This repository is created to demonstrate how a real Healthcare business applica
 
 NOTE: To make students understand this flow used simple English instead of professional phrases (innovation, leverage, platform, e-commerce) are not mentioned.
 
+### Technology Focused:
+- Python Django
+- Angular UI
+- Google Cloud Provider (GCP) deploy this application in GCP Cloud Run
+- Github Actions, various workflows to 
+    -- setup GCP Resources, 
+    -- Deploy Django to Cloud Run instance, 
+    -- Deploy Angular in another Cloud Run instance,
+    -- Access above Cloud Run instances (Django app and Angular app) from your laptop browser
+
 ## Who Is This Repository For?
 
 ### 🎓 For Students & Fresh Graduates
