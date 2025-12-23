@@ -36,10 +36,11 @@ NOTE: To make students understand this flow used simple English instead of profe
 
 Read this file if you wanted to do re-create this codebase from scratch on your own.
 
+- Hands On Setup Notes (Python Django and Angular)
 [README_Hands_On_Setup.md](README_Hands_On_Setup.md)
 
+- Python Django and Angular configurations
 [README_Django_Angular_Configurations.md](README_Django_Angular_Configurations.md)
-
 
 ### 🎓 For Students & Fresh Graduates
 
