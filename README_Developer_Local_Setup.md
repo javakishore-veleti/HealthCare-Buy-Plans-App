@@ -40,3 +40,4 @@
 	- select "Personal" instead of "Work"
 	- use your Personal email and do not use the college email address
 3. Signup with Google Cloud Provider
+4. Signup with LinkedIn (for Newsletters, Tech Updates (Posts from IT community especially AI, ML, Fullstack, DevOps, Cloud, Best Practices)
